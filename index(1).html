@@ -5,16 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador 3D - Cálculo</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: Arial, sans-serif; }
-        #container { width: 100vw; height: 100vh; }
-        #controles {
-            position: absolute; top: 15px; left: 15px; z-index: 10;
-            background: rgba(0,0,0,0.7); color: white; padding: 15px; border-radius: 10px;
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: #000; 
+            font-family: Arial, sans-serif; 
         }
-        label, button { display: block; margin: 10px 0; }
-        input, button { width: 100%; padding: 8px; }
-        button { background: #00aaff; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        button:hover { background: #0088cc; }
+        #container { 
+            width: 100vw; 
+            height: 100vh; 
+        }
+        #controles {
+            position: absolute; 
+            top: 15px; 
+            left: 15px; 
+            z-index: 10;
+            background: rgba(0,0,0,0.7); 
+            color: white; 
+            padding: 15px; 
+            border-radius: 10px;
+            max-width: 250px;
+        }
+        label, button { 
+            display: block; 
+            margin: 10px 0; 
+        }
+        input, button { 
+            width: 100%; 
+            padding: 8px; 
+            box-sizing: border-box;
+        }
+        button { 
+            background: #00aaff; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+        button:hover { 
+            background: #0088cc; 
+        }
+        #info { 
+            font-size: 0.9em; 
+            color: #ccc; 
+            margin-top: 10px;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
 </head>
@@ -23,36 +58,41 @@
 
     <div id="controles">
         <h2>Simulador 3D - Cálculo</h2>
-        <label>Escala: <input type="range" id="escala" min="0.1" max="5" step="0.1" value="1"></label>
-        <label>Rotación (grados): <input type="number" id="rotacion" value="0" min="0" max="360"></label>
+        <label>Escala: 
+            <input type="range" id="escala" min="0.1" max="5" step="0.1" value="1">
+        </label>
+        <label>Rotación (grados): 
+            <input type="number" id="rotacion" value="0" min="0" max="360">
+        </label>
         <button onclick="actualizarSimulacion()">Aplicar cambios</button>
-        <p id="info">Listo</p>
+        <div id="info">Listo para simular</div>
     </div>
 
     <script>
-        // Escena básica Three.js
+        // Configuración de la escena Three.js
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x111122);
+        
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('container').appendChild(renderer.domElement);
 
-        // Luz
-        const luz = new THREE.DirectionalLight(0xffffff, 1);
-        luz.position.set(5, 10, 7);
-        scene.add(luz);
-        scene.add(new THREE.AmbientLight(0x404040));
+        // Iluminación
+        const luzDirectional = new THREE.DirectionalLight(0xffffff, 1);
+        luzDirectional.position.set(5, 10, 7);
+        scene.add(luzDirectional);
+        scene.add(new THREE.AmbientLight(0x404040, 0.5));
 
-        // Objeto 3D (cubo con wireframe + color)
+        // Objeto 3D principal (cubo representando el elemento de simulación)
         const geometria = new THREE.BoxGeometry(2, 2, 2);
-        const material = new THREE.MeshStandardMaterial({ color: 0x00ff88, wireframe: false });
+        const material = new THREE.MeshStandardMaterial({ color: 0x00ff88 });
         const cubo = new THREE.Mesh(geometria, material);
         scene.add(cubo);
 
         camera.position.z = 6;
 
-        // Animación
+        // Bucle de animación
         function animar() {
             requestAnimationFrame(animar);
             cubo.rotation.x += 0.005;
@@ -61,24 +101,28 @@
         }
         animar();
 
-        // Función que actualiza según los controles
+        // Función de actualización interactiva
         window.actualizarSimulacion = function() {
             const escala = parseFloat(document.getElementById('escala').value);
-            const rot = parseFloat(document.getElementById('rotacion').value) * Math.PI / 180;
+            const rotacionGrados = parseFloat(document.getElementById('rotacion').value);
+            const rotacionRadianes = rotacionGrados * (Math.PI / 180);
 
             cubo.scale.set(escala, escala, escala);
-            cubo.rotation.z = rot;
+            cubo.rotation.z = rotacionRadianes;
 
             document.getElementById('info').innerText = 
-                `Escala: ${escala.toFixed(2)} | Rotación Z: ${document.getElementById('rotacion').value}°`;
+                `Escala aplicada: ${escala.toFixed(2)} | Rotación Z: ${rotacionGrados}°`;
         };
 
-        // Responsivo
+        // Manejo de redimensionamiento de ventana
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+
+        // Inicialización automática
+        actualizarSimulacion();
     </script>
 </body>
 </html>
